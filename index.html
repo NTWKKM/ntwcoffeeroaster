@@ -307,14 +307,14 @@
 
         // --- Authentication ---
         onAuthStateChanged(auth, (user) => {
+            const adminEmail = 'remember.but.forget@gmail.com'; // อีเมลผู้ดูแลระบบที่อัปเดตแล้ว
             if (user) {
                 state.user = user;
                 authButtons.classList.add('hidden');
                 userProfile.classList.remove('hidden');
                 userName.textContent = user.displayName || user.email;
                 
-                // Check for admin role (in a real app, this should be server-side)
-                const adminEmail = 'admin@example.com'; // Replace with your admin email
+                // Check for admin role
                 if (user.email === adminEmail) {
                     const adminLink = document.createElement('a');
                     adminLink.href = '#';
@@ -325,7 +325,10 @@
                         e.preventDefault();
                         navigateTo('admin-page');
                     });
-                    navLinks[navLinks.length-1].parentNode.insertBefore(adminLink, navLinks[navLinks.length-1].nextSibling);
+                    const existingAdminLink = document.getElementById('admin-nav');
+                    if (!existingAdminLink) {
+                         navLinks[navLinks.length-1].parentNode.insertBefore(adminLink, navLinks[navLinks.length-1].nextSibling);
+                    }
                 }
             } else {
                 state.user = null;
@@ -573,8 +576,18 @@
 
         // --- Admin Logic ---
         const productForm = document.getElementById('product-form');
+        const adminEmail = 'remember.but.forget@gmail.com'; // อัปเดตอีเมลที่นี่
+        
         productForm.addEventListener('submit', async (e) => {
             e.preventDefault();
+
+            // Check if the user is a registered admin before adding the product
+            if (!state.user || state.user.email !== adminEmail) {
+                showToast('คุณไม่มีสิทธิ์ในการเพิ่มสินค้า');
+                console.error('Permission denied: User is not an admin.');
+                return;
+            }
+
             const productData = {
                 name: document.getElementById('productName').value,
                 description: document.getElementById('productDesc').value,
@@ -590,13 +603,25 @@
                 showToast('เพิ่มสินค้าสำเร็จ');
             } catch (error) {
                 console.error('Error adding product:', error);
-                showToast('เกิดข้อผิดพลาดในการเพิ่มสินค้า');
+                if (error.code === 'permission-denied') {
+                    showToast('การเพิ่มสินค้าล้มเหลว: คุณไม่มีสิทธิ์ในการดำเนินการนี้ กรุณาตรวจสอบกฎความปลอดภัยใน Firebase.');
+                } else {
+                    showToast('เกิดข้อผิดพลาดในการเพิ่มสินค้า');
+                }
             }
         });
 
         const blogForm = document.getElementById('blog-form');
         blogForm.addEventListener('submit', async (e) => {
             e.preventDefault();
+            
+            // Check if the user is a registered admin before adding the blog post
+            if (!state.user || state.user.email !== adminEmail) {
+                showToast('คุณไม่มีสิทธิ์ในการเพิ่มบทความ');
+                console.error('Permission denied: User is not an admin.');
+                return;
+            }
+
             const blogData = {
                 title: document.getElementById('blogTitle').value,
                 content: document.getElementById('blogContent').value,
@@ -608,7 +633,11 @@
                 showToast('เพิ่มบทความสำเร็จ');
             } catch (error) {
                 console.error('Error adding blog post:', error);
-                showToast('เกิดข้อผิดพลาดในการเพิ่มบทความ');
+                if (error.code === 'permission-denied') {
+                    showToast('การเพิ่มบทความล้มเหลว: คุณไม่มีสิทธิ์ในการดำเนินการนี้ กรุณาตรวจสอบกฎความปลอดภัยใน Firebase.');
+                } else {
+                    showToast('เกิดข้อผิดพลาดในการเพิ่มบทความ');
+                }
             }
         });
 
