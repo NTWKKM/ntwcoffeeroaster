@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ร้านกาแฟออนไลน์</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+        }
+        .container {
+            max-width: 1200px;
+        }
+        .page-content {
+            display: none;
+        }
+        .page-content.active {
+            display: block;
+        }
+        .card {
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            transition: transform 0.2s;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        .text-overlay {
+            background: rgba(0, 0, 0, 0.5);
+        }
+        .toast-message {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #48bb78;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+        }
+        .toast-message.show {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col">
+
+    <!-- Toast Message -->
+    <div id="toast" class="toast-message"></div>
+
+    <!-- Main Navigation Bar -->
+    <nav class="bg-white shadow-lg sticky top-0 z-50">
+        <div class="container mx-auto px-6 py-3 flex justify-between items-center">
+            <a href="#" id="home-nav" class="flex items-center space-x-2">
+                <i class="fa-solid fa-mug-hot text-amber-900 text-2xl"></i>
+                <span class="text-2xl font-bold text-gray-800">โรงคั่วของเรา</span>
+            </a>
+            <div class="flex items-center space-x-4">
+                <a href="#" id="products-nav" class="text-gray-800 hover:text-amber-700">สินค้า</a>
+                <a href="#" id="blog-nav" class="text-gray-800 hover:text-amber-700">บทความ</a>
+                <button id="cart-nav" class="relative text-gray-800 hover:text-amber-700">
+                    <i class="fa-solid fa-cart-shopping"></i>
+                    <span id="cart-count" class="absolute top-0 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-red-100 transform translate-x-1/2 -translate-y-1/2 bg-red-600 rounded-full">0</span>
+                </button>
+                <div id="auth-buttons">
+                    <button id="login-btn" class="bg-amber-700 text-white px-4 py-2 rounded-lg hover:bg-amber-800 transition-colors">เข้าสู่ระบบ</button>
+                </div>
+                <div id="user-profile" class="hidden flex items-center space-x-2">
+                    <span id="user-name" class="text-gray-800 font-semibold"></span>
+                    <button id="logout-btn" class="bg-red-500 text-white px-3 py-1 rounded-lg text-sm hover:bg-red-600 transition-colors">ออกจากระบบ</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="flex-grow">
+        <div class="container mx-auto px-6 py-8">
+
+            <!-- Home Page -->
+            <section id="home-page" class="page-content active">
+                <div class="bg-amber-700 text-white rounded-lg p-12 text-center my-8">
+                    <h1 class="text-5xl font-bold mb-4">เมล็ดกาแฟที่คัดสรรมาอย่างดี</h1>
+                    <p class="text-xl">คั่วสดใหม่ทุกสัปดาห์ ส่งตรงจากโรงคั่วถึงมือคุณ</p>
+                </div>
+
+                <div class="text-center my-8">
+                    <h2 class="text-4xl font-semibold mb-4 text-gray-800">สินค้าใหม่ล่าสุด</h2>
+                </div>
+                <div id="new-products" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <!-- New products will be rendered here -->
+                </div>
+            </section>
+
+            <!-- Products Page -->
+            <section id="products-page" class="page-content">
+                <h2 class="text-4xl font-semibold text-center mb-8 text-gray-800">เมล็ดกาแฟทั้งหมด</h2>
+                <div id="all-products" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <!-- All products will be rendered here -->
+                </div>
+            </section>
+
+            <!-- Product Detail Page -->
+            <section id="product-detail-page" class="page-content">
+                <div id="product-detail-container" class="bg-white rounded-lg p-8">
+                    <!-- Product details will be rendered here -->
+                </div>
+            </section>
+            
+            <!-- Blog Page -->
+            <section id="blog-page" class="page-content">
+                <h2 class="text-4xl font-semibold text-center mb-8 text-gray-800">บทความน่าสนใจ</h2>
+                <div id="blog-posts" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <!-- Blog posts will be rendered here -->
+                </div>
+            </section>
+
+            <!-- Blog Post Detail Page -->
+            <section id="blog-post-detail-page" class="page-content">
+                <div id="blog-post-container" class="bg-white rounded-lg p-8 prose max-w-none">
+                    <!-- Blog post content will be rendered here -->
+                </div>
+            </section>
+
+            <!-- Cart Page -->
+            <section id="cart-page" class="page-content">
+                <h2 class="text-4xl font-semibold text-center mb-8 text-gray-800">ตะกร้าสินค้าของคุณ</h2>
+                <div id="cart-items-container" class="bg-white rounded-lg p-8">
+                    <!-- Cart items will be rendered here -->
+                </div>
+                <div id="cart-summary" class="bg-white rounded-lg p-8 mt-4 flex justify-between items-center">
+                    <span class="text-2xl font-bold">ยอดรวม: <span id="cart-total" class="text-amber-700">0 บาท</span></span>
+                    <button id="checkout-btn" class="bg-amber-700 text-white px-8 py-3 rounded-lg hover:bg-amber-800 transition-colors text-lg font-bold">ชำระเงิน</button>
+                </div>
+            </section>
+
+            <!-- Checkout Page -->
+            <section id="checkout-page" class="page-content">
+                <h2 class="text-4xl font-semibold text-center mb-8 text-gray-800">ข้อมูลการชำระเงิน</h2>
+                <div class="bg-white rounded-lg p-8 max-w-xl mx-auto">
+                    <form id="checkout-form" class="space-y-4">
+                        <div>
+                            <label for="fullName" class="block text-gray-700">ชื่อ-นามสกุล</label>
+                            <input type="text" id="fullName" class="w-full p-2 border rounded-lg" required>
+                        </div>
+                        <div>
+                            <label for="address" class="block text-gray-700">ที่อยู่</label>
+                            <textarea id="address" class="w-full p-2 border rounded-lg" rows="4" required></textarea>
+                        </div>
+                        <div>
+                            <label for="paymentMethod" class="block text-gray-700">ช่องทางการชำระเงิน</label>
+                            <select id="paymentMethod" class="w-full p-2 border rounded-lg">
+                                <option value="promptpay">PromptPay</option>
+                                <option value="creditcard">Credit Card (Simulated)</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="w-full bg-amber-700 text-white px-4 py-3 rounded-lg hover:bg-amber-800 transition-colors text-lg font-bold">ยืนยันคำสั่งซื้อ</button>
+                    </form>
+                </div>
+            </section>
+
+            <!-- Admin Page -->
+            <section id="admin-page" class="page-content">
+                <h2 class="text-4xl font-semibold text-center mb-8 text-gray-800">Admin Dashboard</h2>
+                <div class="bg-white rounded-lg p-8 space-y-8">
+                    
+                    <!-- Add/Edit Product -->
+                    <div class="border-b pb-8">
+                        <h3 class="text-2xl font-bold mb-4">เพิ่ม/แก้ไขสินค้า</h3>
+                        <form id="product-form" class="space-y-4">
+                            <div>
+                                <label for="productName" class="block text-gray-700">ชื่อสินค้า</label>
+                                <input type="text" id="productName" class="w-full p-2 border rounded-lg" required>
+                            </div>
+                            <div>
+                                <label for="productDesc" class="block text-gray-700">รายละเอียด</label>
+                                <textarea id="productDesc" class="w-full p-2 border rounded-lg" rows="3" required></textarea>
+                            </div>
+                            <div class="flex space-x-4">
+                                <div class="w-1/2">
+                                    <label for="productPrice" class="block text-gray-700">ราคา (บาท)</label>
+                                    <input type="number" id="productPrice" class="w-full p-2 border rounded-lg" required>
+                                </div>
+                                <div class="w-1/2">
+                                    <label for="productStock" class="block text-gray-700">จำนวนในสต็อก</label>
+                                    <input type="number" id="productStock" class="w-full p-2 border rounded-lg" required>
+                                </div>
+                            </div>
+                            <div>
+                                <label for="productImage" class="block text-gray-700">URL รูปภาพ</label>
+                                <input type="text" id="productImage" class="w-full p-2 border rounded-lg" required>
+                            </div>
+                            <button type="submit" class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors">บันทึกสินค้า</button>
+                        </form>
+                    </div>
+
+                    <!-- Add/Edit Blog Post -->
+                    <div>
+                        <h3 class="text-2xl font-bold mb-4">เพิ่ม/แก้ไขบทความ</h3>
+                        <form id="blog-form" class="space-y-4">
+                            <div>
+                                <label for="blogTitle" class="block text-gray-700">หัวข้อบทความ</label>
+                                <input type="text" id="blogTitle" class="w-full p-2 border rounded-lg" required>
+                            </div>
+                            <div>
+                                <label for="blogContent" class="block text-gray-700">เนื้อหา</label>
+                                <textarea id="blogContent" class="w-full p-2 border rounded-lg" rows="8" required></textarea>
+                            </div>
+                            <button type="submit" class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors">บันทึกบทความ</button>
+                        </form>
+                    </div>
+
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-gray-300 py-6 mt-auto">
+        <div class="container mx-auto px-6 text-center">
+            <p>&copy; 2024 โรงคั่วกาแฟ. สงวนลิขสิทธิ์.</p>
+        </div>
+    </footer>
+
+    <!-- Firebase SDKs -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+        import { getFirestore, collection, doc, getDoc, getDocs, setDoc, addDoc, onSnapshot, query, where, runTransaction } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+        // Global variables for Firebase
+        const __app_id = "default-app-id";
+        const __firebase_config = JSON.stringify({
+            apiKey: "AIzaSyC_1",
+            authDomain: "test-project-1.firebaseapp.com",
+            projectId: "test-project-1",
+            storageBucket: "test-project-1.appspot.com",
+            messagingSenderId: "1234567890",
+            appId: __app_id,
+            measurementId: "G-1234567890"
+        });
+        const __initial_auth_token = "";
+
+        const firebaseConfig = JSON.parse(__firebase_config);
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        // UI Elements
+        const pages = document.querySelectorAll('.page-content');
+        const navLinks = document.querySelectorAll('a[id$="-nav"], button[id$="-nav"]');
+        const loginBtn = document.getElementById('login-btn');
+        const logoutBtn = document.getElementById('logout-btn');
+        const userProfile = document.getElementById('user-profile');
+        const authButtons = document.getElementById('auth-buttons');
+        const userName = document.getElementById('user-name');
+        const cartCountEl = document.getElementById('cart-count');
+        const checkoutBtn = document.getElementById('checkout-btn');
+        const checkoutForm = document.getElementById('checkout-form');
+        const toastEl = document.getElementById('toast');
+
+        // State
+        const state = {
+            products: [],
+            blogPosts: [],
+            cart: JSON.parse(localStorage.getItem('coffee-cart')) || {},
+            user: null
+        };
+
+        // --- UI & Routing ---
+        function navigateTo(pageId) {
+            pages.forEach(page => {
+                page.classList.remove('active');
+            });
+            document.getElementById(pageId).classList.add('active');
+        }
+
+        navLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const pageId = e.currentTarget.id.replace('-nav', '-page');
+                if (pageId === 'cart-page') {
+                    renderCart();
+                } else if (pageId === 'home-page') {
+                    renderNewProducts();
+                } else if (pageId === 'products-page') {
+                    renderAllProducts();
+                } else if (pageId === 'blog-page') {
+                    renderBlogPosts();
+                }
+                navigateTo(pageId);
+            });
+        });
+
+        function showToast(message) {
+            toastEl.textContent = message;
+            toastEl.classList.add('show');
+            setTimeout(() => {
+                toastEl.classList.remove('show');
+            }, 3000);
+        }
+
+        // --- Authentication ---
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                state.user = user;
+                authButtons.classList.add('hidden');
+                userProfile.classList.remove('hidden');
+                userName.textContent = user.displayName || user.email;
+                
+                // Check for admin role (in a real app, this should be server-side)
+                const adminEmail = 'admin@example.com'; // Replace with your admin email
+                if (user.email === adminEmail) {
+                    const adminLink = document.createElement('a');
+                    adminLink.href = '#';
+                    adminLink.id = 'admin-nav';
+                    adminLink.className = 'text-gray-800 hover:text-amber-700';
+                    adminLink.textContent = 'Admin';
+                    adminLink.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        navigateTo('admin-page');
+                    });
+                    navLinks[navLinks.length-1].parentNode.insertBefore(adminLink, navLinks[navLinks.length-1].nextSibling);
+                }
+            } else {
+                state.user = null;
+                authButtons.classList.remove('hidden');
+                userProfile.classList.add('hidden');
+                const adminNav = document.getElementById('admin-nav');
+                if (adminNav) {
+                    adminNav.remove();
+                }
+            }
+        });
+
+        loginBtn.addEventListener('click', () => {
+            const provider = new GoogleAuthProvider();
+            signInWithPopup(auth, provider);
+        });
+
+        logoutBtn.addEventListener('click', () => {
+            signOut(auth);
+        });
+
+        // --- Firestore Data Fetching ---
+        function fetchProducts() {
+            onSnapshot(collection(db, "products"), (snapshot) => {
+                state.products = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                renderNewProducts();
+                renderAllProducts();
+            });
+        }
+        
+        function fetchBlogPosts() {
+            onSnapshot(collection(db, "blog"), (snapshot) => {
+                state.blogPosts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                renderBlogPosts();
+            });
+        }
+
+        // --- Product Rendering ---
+        function renderNewProducts() {
+            const container = document.getElementById('new-products');
+            container.innerHTML = '';
+            const newProducts = state.products.filter(p => p.isNew).slice(0, 3);
+            newProducts.forEach(product => {
+                const productCard = createProductCard(product);
+                container.appendChild(productCard);
+            });
+        }
+
+        function renderAllProducts() {
+            const container = document.getElementById('all-products');
+            container.innerHTML = '';
+            state.products.forEach(product => {
+                const productCard = createProductCard(product);
+                container.appendChild(productCard);
+            });
+        }
+
+        function createProductCard(product) {
+            const card = document.createElement('div');
+            card.className = 'card bg-white rounded-lg overflow-hidden shadow-md p-4';
+            card.innerHTML = `
+                <img src="${product.imageUrl}" alt="${product.name}" class="w-full h-48 object-cover rounded-lg mb-4">
+                <h3 class="text-xl font-semibold text-gray-800 mb-2">${product.name}</h3>
+                <p class="text-gray-600 text-sm mb-4 truncate">${product.description}</p>
+                <div class="flex justify-between items-center">
+                    <span class="text-2xl font-bold text-amber-700">${product.price} บาท</span>
+                    <button class="add-to-cart-btn bg-amber-700 text-white px-4 py-2 rounded-lg hover:bg-amber-800 transition-colors" data-product-id="${product.id}">
+                        <i class="fa-solid fa-cart-plus mr-2"></i>ใส่ตะกร้า
+                    </button>
+                </div>
+            `;
+            card.querySelector('.add-to-cart-btn').addEventListener('click', () => addToCart(product));
+            card.addEventListener('click', (e) => {
+                if (!e.target.closest('.add-to-cart-btn')) {
+                    renderProductDetail(product);
+                    navigateTo('product-detail-page');
+                }
+            });
+            return card;
+        }
+        
+        function renderProductDetail(product) {
+            const container = document.getElementById('product-detail-container');
+            container.innerHTML = `
+                <div class="md:flex md:space-x-8">
+                    <img src="${product.imageUrl}" alt="${product.name}" class="w-full md:w-1/2 rounded-lg object-cover">
+                    <div class="mt-4 md:mt-0 md:w-1/2">
+                        <h2 class="text-4xl font-bold text-gray-800 mb-2">${product.name}</h2>
+                        <p class="text-gray-600 text-lg mb-4">${product.description}</p>
+                        <span class="text-4xl font-bold text-amber-700">${product.price} บาท</span>
+                        <p class="text-sm text-gray-500 mt-2">สต็อกคงเหลือ: ${product.stock} ถุง</p>
+                        <button class="add-to-cart-btn mt-6 w-full bg-amber-700 text-white px-8 py-3 rounded-lg hover:bg-amber-800 transition-colors text-lg font-bold" data-product-id="${product.id}">
+                            <i class="fa-solid fa-cart-plus mr-2"></i>เพิ่มลงตะกร้า
+                        </button>
+                    </div>
+                </div>
+            `;
+            container.querySelector('.add-to-cart-btn').addEventListener('click', () => addToCart(product));
+        }
+
+        // --- Blog Rendering ---
+        function renderBlogPosts() {
+            const container = document.getElementById('blog-posts');
+            container.innerHTML = '';
+            state.blogPosts.forEach(post => {
+                const postCard = document.createElement('div');
+                postCard.className = 'card bg-white rounded-lg overflow-hidden shadow-md p-4';
+                postCard.innerHTML = `
+                    <h3 class="text-xl font-semibold text-gray-800 mb-2">${post.title}</h3>
+                    <p class="text-gray-600 text-sm mb-4 truncate">${post.content}</p>
+                    <button class="read-more-btn text-amber-700 hover:underline" data-blog-id="${post.id}">อ่านเพิ่มเติม</button>
+                `;
+                postCard.querySelector('.read-more-btn').addEventListener('click', () => {
+                    renderBlogPostDetail(post);
+                    navigateTo('blog-post-detail-page');
+                });
+                container.appendChild(postCard);
+            });
+        }
+        
+        function renderBlogPostDetail(post) {
+            const container = document.getElementById('blog-post-container');
+            container.innerHTML = `
+                <h2 class="text-4xl font-bold text-gray-800 mb-4">${post.title}</h2>
+                <p class="text-sm text-gray-500 mb-6">เขียนเมื่อ: ${new Date(post.createdAt.seconds * 1000).toLocaleDateString()}</p>
+                <div class="prose">${post.content}</div>
+            `;
+        }
+
+        // --- Cart Logic ---
+        function updateCartCount() {
+            const count = Object.values(state.cart).reduce((sum, item) => sum + item.quantity, 0);
+            cartCountEl.textContent = count;
+        }
+
+        function addToCart(product) {
+            if (state.cart[product.id]) {
+                state.cart[product.id].quantity += 1;
+            } else {
+                state.cart[product.id] = { ...product, quantity: 1 };
+            }
+            localStorage.setItem('coffee-cart', JSON.stringify(state.cart));
+            updateCartCount();
+            showToast('เพิ่มสินค้าลงในตะกร้าแล้ว');
+        }
+
+        function removeFromCart(productId) {
+            delete state.cart[productId];
+            localStorage.setItem('coffee-cart', JSON.stringify(state.cart));
+            updateCartCount();
+            renderCart();
+        }
+
+        function renderCart() {
+            const container = document.getElementById('cart-items-container');
+            const totalEl = document.getElementById('cart-total');
+            container.innerHTML = '';
+            let total = 0;
+
+            if (Object.keys(state.cart).length === 0) {
+                container.innerHTML = '<p class="text-center text-gray-500">ไม่มีสินค้าในตะกร้า</p>';
+                totalEl.textContent = '0 บาท';
+                checkoutBtn.disabled = true;
+                return;
+            }
+
+            checkoutBtn.disabled = false;
+            Object.values(state.cart).forEach(item => {
+                const itemEl = document.createElement('div');
+                itemEl.className = 'flex items-center justify-between p-4 mb-2 bg-gray-50 rounded-lg';
+                itemEl.innerHTML = `
+                    <div class="flex items-center space-x-4">
+                        <img src="${item.imageUrl}" alt="${item.name}" class="w-16 h-16 rounded-lg object-cover">
+                        <div>
+                            <h3 class="font-semibold text-gray-800">${item.name}</h3>
+                            <p class="text-sm text-gray-500">${item.price} บาท x ${item.quantity}</p>
+                        </div>
+                    </div>
+                    <div>
+                        <span class="font-bold text-amber-700">${item.price * item.quantity} บาท</span>
+                        <button class="remove-from-cart-btn text-red-500 ml-4 hover:text-red-700" data-product-id="${item.id}">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </div>
+                `;
+                itemEl.querySelector('.remove-from-cart-btn').addEventListener('click', () => removeFromCart(item.id));
+                container.appendChild(itemEl);
+                total += item.price * item.quantity;
+            });
+            totalEl.textContent = `${total} บาท`;
+        }
+
+        checkoutBtn.addEventListener('click', () => {
+            if (Object.keys(state.cart).length > 0) {
+                navigateTo('checkout-page');
+            } else {
+                showToast('กรุณาเพิ่มสินค้าลงในตะกร้าก่อน');
+            }
+        });
+        
+        checkoutForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            // In a real app, this would be a secure Cloud Function call
+            // to process the payment and update stock.
+            showToast('กำลังประมวลผลคำสั่งซื้อ...');
+            
+            try {
+                // Simulate a transaction to update stock
+                await runTransaction(db, async (transaction) => {
+                    for (const productId in state.cart) {
+                        const cartItem = state.cart[productId];
+                        const productRef = doc(db, 'products', productId);
+                        const productDoc = await transaction.get(productRef);
+                        
+                        if (!productDoc.exists() || productDoc.data().stock < cartItem.quantity) {
+                            throw new Error(`สินค้า '${cartItem.name}' มีไม่พอในสต็อก`);
+                        }
+                        
+                        const newStock = productDoc.data().stock - cartItem.quantity;
+                        transaction.update(productRef, { stock: newStock });
+                    }
+                    
+                    // Add order to orders collection
+                    const order = {
+                        userId: state.user ? state.user.uid : 'guest',
+                        items: Object.values(state.cart),
+                        totalAmount: Object.values(state.cart).reduce((sum, item) => sum + item.price * item.quantity, 0),
+                        status: 'paid',
+                        address: document.getElementById('address').value,
+                        fullName: document.getElementById('fullName').value,
+                        createdAt: new Date()
+                    };
+                    await addDoc(collection(db, 'orders'), order);
+                });
+
+                // Clear cart on success
+                state.cart = {};
+                localStorage.removeItem('coffee-cart');
+                updateCartCount();
+                checkoutForm.reset();
+                navigateTo('home-page');
+                showToast('คำสั่งซื้อของคุณสำเร็จแล้ว! ขอบคุณครับ');
+                
+            } catch (error) {
+                console.error('Checkout failed:', error);
+                showToast(`การสั่งซื้อล้มเหลว: ${error.message}`);
+            }
+        });
+
+        // --- Admin Logic ---
+        const productForm = document.getElementById('product-form');
+        productForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const productData = {
+                name: document.getElementById('productName').value,
+                description: document.getElementById('productDesc').value,
+                price: parseInt(document.getElementById('productPrice').value),
+                stock: parseInt(document.getElementById('productStock').value),
+                imageUrl: document.getElementById('productImage').value,
+                isNew: true,
+                createdAt: new Date()
+            };
+            try {
+                await addDoc(collection(db, 'products'), productData);
+                productForm.reset();
+                showToast('เพิ่มสินค้าสำเร็จ');
+            } catch (error) {
+                console.error('Error adding product:', error);
+                showToast('เกิดข้อผิดพลาดในการเพิ่มสินค้า');
+            }
+        });
+
+        const blogForm = document.getElementById('blog-form');
+        blogForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const blogData = {
+                title: document.getElementById('blogTitle').value,
+                content: document.getElementById('blogContent').value,
+                createdAt: new Date()
+            };
+            try {
+                await addDoc(collection(db, 'blog'), blogData);
+                blogForm.reset();
+                showToast('เพิ่มบทความสำเร็จ');
+            } catch (error) {
+                console.error('Error adding blog post:', error);
+                showToast('เกิดข้อผิดพลาดในการเพิ่มบทความ');
+            }
+        });
+
+        // --- Initial Load ---
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchProducts();
+            fetchBlogPosts();
+            updateCartCount();
+        });
+
+    </script>
+</body>
+</html>
