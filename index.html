@@ -192,10 +192,10 @@
                                     <input type="number" id="productStock" class="w-full p-2 border rounded-lg" required>
                                 </div>
                             </div>
-                            <!-- Updated to use file upload -->
+                            <!-- Updated to use a text input for image URL -->
                             <div>
-                                <label for="productImageFile" class="block text-gray-700">อัปโหลดรูปภาพสินค้า</label>
-                                <input type="file" id="productImageFile" class="w-full p-2 border rounded-lg" accept="image/*" required>
+                                <label for="productImageUrl" class="block text-gray-700">URL รูปภาพสินค้า</label>
+                                <input type="text" id="productImageUrl" class="w-full p-2 border rounded-lg" required>
                             </div>
                             <button type="submit" id="productSubmitBtn" class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors">บันทึกสินค้า</button>
                         </form>
@@ -209,10 +209,10 @@
                                 <label for="blogTitle" class="block text-gray-700">หัวข้อบทความ</label>
                                 <input type="text" id="blogTitle" class="w-full p-2 border rounded-lg" required>
                             </div>
-                            <!-- Updated to use file upload -->
+                            <!-- Updated to use a text input for image URL -->
                             <div>
-                                <label for="blogImageFile" class="block text-gray-700">อัปโหลดรูปภาพบทความ</label>
-                                <input type="file" id="blogImageFile" class="w-full p-2 border rounded-lg" accept="image/*">
+                                <label for="blogImageUrl" class="block text-gray-700">URL รูปภาพบทความ</label>
+                                <input type="text" id="blogImageUrl" class="w-full p-2 border rounded-lg">
                             </div>
                             <div>
                                 <label for="blogContent" class="block text-gray-700">เนื้อหา</label>
@@ -239,7 +239,6 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
         import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
         import { getFirestore, collection, doc, getDoc, getDocs, setDoc, addDoc, onSnapshot, query, where, runTransaction } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
 
         // Global variables for Firebase
         const __app_id = typeof window.__app_id !== 'undefined' ? window.__app_id : 'default-app-id';
@@ -257,7 +256,6 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
-        const storage = getStorage(app);
         
         // UI Elements
         const pages = document.querySelectorAll('.page-content');
@@ -602,21 +600,6 @@
             }
         });
 
-        // --- Firebase Storage Upload Function ---
-        async function uploadFileAndGetURL(file, folderName) {
-            const fileName = `${new Date().getTime()}_${file.name}`;
-            const storageRef = ref(storage, `${folderName}/${fileName}`);
-            
-            try {
-                const uploadTask = await uploadBytes(storageRef, file);
-                const downloadURL = await getDownloadURL(uploadTask.ref);
-                return downloadURL;
-            } catch (error) {
-                console.error("Error uploading file:", error);
-                throw new Error("Failed to upload image. Please try again.");
-            }
-        }
-
         // --- Admin Logic ---
         const adminEmail = 'remember.but.forget@gmail.com'; 
         
@@ -629,38 +612,23 @@
                 return;
             }
 
-            // แสดงสถานะกำลังอัปโหลด
-            productSubmitBtn.textContent = 'กำลังอัปโหลด...';
-            productSubmitBtn.disabled = true;
-
-            const imageFile = document.getElementById('productImageFile').files[0];
-            let imageUrl = '';
-
+            const productData = {
+                name: document.getElementById('productName').value,
+                description: document.getElementById('productDesc').value,
+                price: parseInt(document.getElementById('productPrice').value),
+                stock: parseInt(document.getElementById('productStock').value),
+                imageUrl: document.getElementById('productImageUrl').value, // Use URL from the input
+                isNew: true,
+                createdAt: new Date()
+            };
+            
             try {
-                // อัปโหลดรูปภาพไปยัง Firebase Storage
-                imageUrl = await uploadFileAndGetURL(imageFile, 'products');
-
-                const productData = {
-                    name: document.getElementById('productName').value,
-                    description: document.getElementById('productDesc').value,
-                    price: parseInt(document.getElementById('productPrice').value),
-                    stock: parseInt(document.getElementById('productStock').value),
-                    imageUrl: imageUrl, // ใช้ URL จาก Firebase Storage
-                    isNew: true,
-                    createdAt: new Date()
-                };
-                
-                // บันทึกข้อมูลสินค้าลงใน Firestore
                 await addDoc(collection(db, 'products'), productData);
                 productForm.reset();
                 showToast('เพิ่มสินค้าสำเร็จ');
             } catch (error) {
                 console.error('Error adding product:', error);
-                showToast(error.message || 'เกิดข้อผิดพลาดในการเพิ่มสินค้า');
-            } finally {
-                // คืนสถานะปุ่ม
-                productSubmitBtn.textContent = 'บันทึกสินค้า';
-                productSubmitBtn.disabled = false;
+                showToast('เกิดข้อผิดพลาดในการเพิ่มสินค้า');
             }
         });
 
@@ -672,38 +640,21 @@
                 console.error('Permission denied: User is not an admin.');
                 return;
             }
-
-            // แสดงสถานะกำลังอัปโหลด
-            blogSubmitBtn.textContent = 'กำลังอัปโหลด...';
-            blogSubmitBtn.disabled = true;
-
-            const blogImageFile = document.getElementById('blogImageFile').files[0];
-            let blogImageUrl = '';
+            
+            const blogData = {
+                title: document.getElementById('blogTitle').value,
+                imageUrl: document.getElementById('blogImageUrl').value, // Use URL from the input
+                content: document.getElementById('blogContent').value,
+                createdAt: new Date()
+            };
 
             try {
-                // อัปโหลดรูปภาพ (ถ้ามี)
-                if (blogImageFile) {
-                    blogImageUrl = await uploadFileAndGetURL(blogImageFile, 'blog_images');
-                }
-
-                const blogData = {
-                    title: document.getElementById('blogTitle').value,
-                    content: document.getElementById('blogContent').value,
-                    imageUrl: blogImageUrl, // ใช้ URL จาก Firebase Storage
-                    createdAt: new Date()
-                };
-
-                // บันทึกข้อมูลบทความลงใน Firestore
                 await addDoc(collection(db, 'blog'), blogData);
                 blogForm.reset();
                 showToast('เพิ่มบทความสำเร็จ');
             } catch (error) {
                 console.error('Error adding blog post:', error);
-                showToast(error.message || 'เกิดข้อผิดพลาดในการเพิ่มบทความ');
-            } finally {
-                // คืนสถานะปุ่ม
-                blogSubmitBtn.textContent = 'บันทึกบทความ';
-                blogSubmitBtn.disabled = false;
+                showToast('เกิดข้อผิดพลาดในการเพิ่มบทความ');
             }
         });
 
