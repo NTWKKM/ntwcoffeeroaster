@@ -235,19 +235,18 @@
         import { getFirestore, collection, doc, getDoc, getDocs, setDoc, addDoc, onSnapshot, query, where, runTransaction } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
         // Global variables for Firebase
-        const __app_id = "default-app-id";
+        const __app_id = typeof window.__app_id !== 'undefined' ? window.__app_id : 'default-app-id';
+        const __initial_auth_token = typeof window.__initial_auth_token !== 'undefined' ? window.__initial_auth_token : '';
+        
         const firebaseConfig = {
-              apiKey: "AIzaSyCm0RuMYQgGpZrDKsN-NTfMz1xl3GreygM",
-              authDomain: "ntwcoffee-roaster-online.firebaseapp.com",
-              projectId: "ntwcoffee-roaster-online",
-              storageBucket: "ntwcoffee-roaster-online.firebasestorage.app",
-              messagingSenderId: "740660598199",
-              appId: "1:740660598199:web:e98f3b788c4e61913d4432",
-              measurementId: "G-CM1EM5D6HG"
-              };
-        const __initial_auth_token = "";
-
-        const firebaseConfig = JSON.parse(__firebase_config);
+          apiKey: "AIzaSyCm0RuMYQgGpZrDKsN-NTfMz1xl3GreygM",
+          authDomain: "ntwcoffee-roaster-online.firebaseapp.com",
+          projectId: "ntwcoffee-roaster-online",
+          storageBucket: "ntwcoffee-roaster-online.firebasestorage.app",
+          messagingSenderId: "740660598199",
+          appId: "1:740660598199:web:e98f3b788c4e61913d4432",
+          measurementId: "G-CM1EM5D6HG"
+        };
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
