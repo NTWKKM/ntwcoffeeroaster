@@ -247,16 +247,7 @@
         });
         const __initial_auth_token = "";
 
-        const __firebase_config = JSON.stringify({
-            // โค้ดที่คุณคัดลอกมา จะอยู่ในส่วนนี้
-            apiKey: "AIzaSyC...",
-            authDomain: "your-project-id.firebaseapp.com",
-            projectId: "your-project-id",
-            storageBucket: "your-project-id.appspot.com",
-            messagingSenderId: "...",
-            appId: "1:...",
-            measurementId: "G-..."
-        });
+        const firebaseConfig = JSON.parse(__firebase_config);
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
@@ -539,50 +530,38 @@
         checkoutForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             
-            // In a real app, this would be a secure Cloud Function call
-            // to process the payment and update stock.
             showToast('กำลังประมวลผลคำสั่งซื้อ...');
             
             try {
-                // Simulate a transaction to update stock
-                await runTransaction(db, async (transaction) => {
-                    for (const productId in state.cart) {
-                        const cartItem = state.cart[productId];
-                        const productRef = doc(db, 'products', productId);
-                        const productDoc = await transaction.get(productRef);
-                        
-                        if (!productDoc.exists() || productDoc.data().stock < cartItem.quantity) {
-                            throw new Error(`สินค้า '${cartItem.name}' มีไม่พอในสต็อก`);
-                        }
-                        
-                        const newStock = productDoc.data().stock - cartItem.quantity;
-                        transaction.update(productRef, { stock: newStock });
-                    }
-                    
-                    // Add order to orders collection
-                    const order = {
-                        userId: state.user ? state.user.uid : 'guest',
-                        items: Object.values(state.cart),
-                        totalAmount: Object.values(state.cart).reduce((sum, item) => sum + item.price * item.quantity, 0),
-                        status: 'paid',
-                        address: document.getElementById('address').value,
+                const response = await fetch('/api/checkout', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        cart: state.cart,
                         fullName: document.getElementById('fullName').value,
-                        createdAt: new Date()
-                    };
-                    await addDoc(collection(db, 'orders'), order);
+                        address: document.getElementById('address').value,
+                        userId: state.user ? state.user.uid : 'guest'
+                    }),
                 });
 
-                // Clear cart on success
-                state.cart = {};
-                localStorage.removeItem('coffee-cart');
-                updateCartCount();
-                checkoutForm.reset();
-                navigateTo('home-page');
-                showToast('คำสั่งซื้อของคุณสำเร็จแล้ว! ขอบคุณครับ');
+                const result = await response.json();
+
+                if (response.ok) {
+                    state.cart = {};
+                    localStorage.removeItem('coffee-cart');
+                    updateCartCount();
+                    checkoutForm.reset();
+                    navigateTo('home-page');
+                    showToast('คำสั่งซื้อของคุณสำเร็จแล้ว! ขอบคุณครับ');
+                } else {
+                    showToast(`การสั่งซื้อล้มเหลว: ${result.message}`);
+                }
                 
             } catch (error) {
                 console.error('Checkout failed:', error);
-                showToast(`การสั่งซื้อล้มเหลว: ${error.message}`);
+                showToast('เกิดข้อผิดพลาดในการสั่งซื้อ');
             }
         });
 
