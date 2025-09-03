@@ -143,23 +143,36 @@
             <!-- Checkout Page -->
             <section id="checkout-page" class="page-content">
                 <h2 class="text-4xl font-semibold text-center mb-8 text-gray-800">ข้อมูลการชำระเงิน</h2>
-                <div class="bg-white rounded-lg p-8 max-w-xl mx-auto">
-                    <form id="checkout-form" class="space-y-4">
+                <div class="bg-white rounded-lg p-8 max-w-2xl mx-auto">
+                    <h3 class="text-2xl font-bold mb-4">สรุปคำสั่งซื้อ</h3>
+                    <div id="checkout-summary-items" class="border-b border-gray-200 pb-4 mb-4 space-y-2">
+                        <!-- Order items and total here -->
+                    </div>
+                    
+                    <form id="checkout-form" class="space-y-6">
+                        <h3 class="text-2xl font-bold">ข้อมูลจัดส่ง</h3>
                         <div>
-                            <label for="fullName" class="block text-gray-700">ชื่อ-นามสกุล</label>
-                            <input type="text" id="fullName" class="w-full p-2 border rounded-lg" required>
+                            <label for="fullName" class="block text-gray-700 font-semibold">ชื่อ-นามสกุล</label>
+                            <input type="text" id="fullName" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500" required>
                         </div>
                         <div>
-                            <label for="address" class="block text-gray-700">ที่อยู่</label>
-                            <textarea id="address" class="w-full p-2 border rounded-lg" rows="4" required></textarea>
+                            <label for="address" class="block text-gray-700 font-semibold">ที่อยู่</label>
+                            <textarea id="address" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500" rows="4" required></textarea>
                         </div>
+                        
+                        <h3 class="text-2xl font-bold">ช่องทางการชำระเงิน</h3>
                         <div>
-                            <label for="paymentMethod" class="block text-gray-700">ช่องทางการชำระเงิน</label>
-                            <select id="paymentMethod" class="w-full p-2 border rounded-lg">
-                                <option value="promptpay">PromptPay</option>
-                                <option value="creditcard">Credit Card (Simulated)</option>
+                            <label for="paymentMethod" class="block text-gray-700 font-semibold">เลือกวิธีชำระเงิน</label>
+                            <select id="paymentMethod" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500">
+                                <option value="promptpay">PromptPay (พร้อมเพย์)</option>
+                                <option value="creditcard">Credit Card (บัตรเครดิต)</option>
                             </select>
                         </div>
+                        
+                        <div id="payment-details-container">
+                            <!-- Dynamic payment details will be rendered here -->
+                        </div>
+
                         <button type="submit" class="w-full bg-amber-700 text-white px-4 py-3 rounded-lg hover:bg-amber-800 transition-colors text-lg font-bold">ยืนยันคำสั่งซื้อ</button>
                     </form>
                 </div>
@@ -273,6 +286,8 @@
         const productSubmitBtn = document.getElementById('productSubmitBtn');
         const blogForm = document.getElementById('blog-form');
         const blogSubmitBtn = document.getElementById('blogSubmitBtn');
+        const paymentMethodSelect = document.getElementById('paymentMethod');
+        const paymentDetailsContainer = document.getElementById('payment-details-container');
 
         // State
         const state = {
@@ -556,48 +571,98 @@
 
         checkoutBtn.addEventListener('click', () => {
             if (Object.keys(state.cart).length > 0) {
+                renderCheckoutPage();
                 navigateTo('checkout-page');
             } else {
                 showToast('กรุณาเพิ่มสินค้าลงในตะกร้าก่อน');
             }
         });
         
+        function renderCheckoutPage() {
+            const summaryContainer = document.getElementById('checkout-summary-items');
+            summaryContainer.innerHTML = '';
+            let total = 0;
+
+            Object.values(state.cart).forEach(item => {
+                const itemEl = document.createElement('div');
+                itemEl.className = 'flex justify-between items-center';
+                itemEl.innerHTML = `
+                    <span class="text-gray-600">${item.name} x ${item.quantity}</span>
+                    <span class="font-semibold">${item.price * item.quantity} บาท</span>
+                `;
+                summaryContainer.appendChild(itemEl);
+                total += item.price * item.quantity;
+            });
+
+            const totalEl = document.createElement('div');
+            totalEl.className = 'flex justify-between items-center font-bold text-lg mt-4 text-amber-700';
+            totalEl.innerHTML = `<span>ยอดรวมทั้งหมด:</span><span>${total} บาท</span>`;
+            summaryContainer.appendChild(totalEl);
+
+            renderPaymentForm(paymentMethodSelect.value);
+        }
+
+        function renderPaymentForm(method) {
+            paymentDetailsContainer.innerHTML = '';
+            if (method === 'promptpay') {
+                const total = Object.values(state.cart).reduce((sum, item) => sum + item.price * item.quantity, 0);
+                paymentDetailsContainer.innerHTML = `
+                    <div class="text-center p-6 bg-gray-50 rounded-lg border border-gray-200">
+                        <p class="text-xl font-bold mb-4">สแกนเพื่อชำระเงินด้วย PromptPay</p>
+                        <img src="https://placehold.co/250x250/2563eb/ffffff?text=QR+Code+PromptPay" alt="PromptPay QR Code" class="mx-auto rounded-lg mb-4">
+                        <p class="text-2xl font-bold text-amber-700">ยอดเงิน: ${total} บาท</p>
+                        <p class="text-gray-500 mt-2">หลังจากชำระเงินแล้ว ระบบจะตรวจสอบคำสั่งซื้อและส่งสินค้าให้คุณ</p>
+                        <p class="text-sm font-semibold text-gray-700 mt-4">กรุณาส่งสลิปการโอนเงินเพื่อยืนยันคำสั่งซื้อมาที่:</p>
+                        <p class="text-sm text-gray-600">Line ID: <span class="font-bold">@your_line_id</span></p>
+                        <p class="text-sm text-gray-600">Email: <span class="font-bold">your_email@example.com</span></p>
+                    </div>
+                `;
+            } else if (method === 'creditcard') {
+                paymentDetailsContainer.innerHTML = `
+                    <div class="space-y-4 p-6 bg-gray-50 rounded-lg border border-gray-200">
+                        <div>
+                            <label for="cardNumber" class="block text-gray-700 font-semibold">หมายเลขบัตรเครดิต</label>
+                            <input type="text" id="cardNumber" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500" placeholder="xxxx-xxxx-xxxx-xxxx" required>
+                        </div>
+                        <div class="flex space-x-4">
+                            <div class="w-1/2">
+                                <label for="expiryDate" class="block text-gray-700 font-semibold">วันหมดอายุ</label>
+                                <input type="text" id="expiryDate" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500" placeholder="MM/YY" required>
+                            </div>
+                            <div class="w-1/2">
+                                <label for="cvc" class="block text-gray-700 font-semibold">CVC</label>
+                                <input type="text" id="cvc" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500" placeholder="xxx" required>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+        
+        // Listen for changes on the payment method dropdown
+        paymentMethodSelect.addEventListener('change', (e) => {
+            renderPaymentForm(e.target.value);
+        });
+
         checkoutForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             
-            showToast('กำลังประมวลผลคำสั่งซื้อ...');
+            const paymentMethod = paymentMethodSelect.value;
             
-            try {
-                const response = await fetch('/api/checkout', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        cart: state.cart,
-                        fullName: document.getElementById('fullName').value,
-                        address: document.getElementById('address').value,
-                        userId: state.user ? state.user.uid : 'guest'
-                    }),
-                });
-
-                const result = await response.json();
-
-                if (response.ok) {
-                    state.cart = {};
-                    localStorage.removeItem('coffee-cart');
-                    updateCartCount();
-                    checkoutForm.reset();
-                    navigateTo('home-page');
-                    showToast('คำสั่งซื้อของคุณสำเร็จแล้ว! ขอบคุณครับ');
-                } else {
-                    showToast(`การสั่งซื้อล้มเหลว: ${result.message}`);
-                }
-                
-            } catch (error) {
-                console.error('Checkout failed:', error);
-                showToast('เกิดข้อผิดพลาดในการสั่งซื้อ');
+            if (paymentMethod === 'promptpay') {
+                showToast('คำสั่งซื้อสำเร็จแล้ว! โปรดสแกน QR เพื่อชำระเงิน');
+            } else if (paymentMethod === 'creditcard') {
+                showToast('การชำระเงินสำเร็จแล้ว! ขอบคุณครับ');
             }
+
+            // After a successful (simulated) payment, clear the cart
+            setTimeout(() => {
+                state.cart = {};
+                localStorage.removeItem('coffee-cart');
+                updateCartCount();
+                checkoutForm.reset();
+                navigateTo('home-page');
+            }, 3000);
         });
 
         // --- Admin Logic ---
